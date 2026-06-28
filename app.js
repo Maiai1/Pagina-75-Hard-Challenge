@@ -767,4 +767,8 @@ function spawnSparkleCenter() {
     setTimeout(() => el.remove(), 700);
 }
 
+document.getElementById('book-cover-input')?.addEventListener('change', function() {
+    const span = document.getElementById('cover-name');
+    if (span) span.textContent = this.files?.[0]?.name || 'Ninguna portada';
+});
 init();
