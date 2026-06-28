@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>75 Hard – Tu Diario de Transformación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="deco deco-1" id="deco-item-1">🌸</div>
+    <div class="deco deco-2" id="deco-item-2">✨</div>
+    <div class="deco deco-3" id="deco-item-3">🎀</div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="celebration">
+        <div class="celebration-card">
+            <div style="font-size:52px;margin-bottom:8px">🏆</div>
+            <h2 class="cel-title">¡75 días completados!</h2>
+            <p style="font-size:13px;color:var(--text-soft);line-height:1.6;margin-bottom:20px">Transformaste tu vida un día a la vez. Sos increíble.</p>
+            <div id="cel-stats" style="background:var(--pink-soft);border-radius:12px;padding:14px;margin-bottom:16px;text-align:left;font-size:13px;color:var(--text-soft)"></div>
+            <button class="btn btn-pink close-cel">¡Celebrar! 🎉</button>
+        </div>
+    </div>
+
+    <nav>
+        <div class="nav-inner">
+            <button class="nav-btn active" onclick="showPage('home')" id="nav-home">🏠 Home</button>
+            <button class="nav-btn" onclick="showPage('checklist')" id="nav-checklist">✅ Hoy</button>
+            <button class="nav-btn" onclick="showPage('water')" id="nav-water">💧 Agua</button>
+            <button class="nav-btn" onclick="showPage('photos')" id="nav-photos">📷 Progreso</button>
+            <button class="nav-btn" onclick="showPage('calendar')" id="nav-calendar">📅 Calendario</button>
+            <button class="nav-btn" onclick="showPage('reading')" id="nav-reading">📖 Lectura</button>
+            <button class="nav-btn" onclick="showPage('workout')" id="nav-workout">🏋️ Entreno</button>
+            <button class="nav-btn" onclick="showPage('journal')" id="nav-journal">📝 Journal</button>
+            <button class="nav-btn" onclick="showPage('mood')" id="nav-mood">😊 Mood</button>
+            <button class="nav-btn" onclick="showPage('achievements')" id="nav-achievements">🏆 Logros</button>
+            <button class="nav-btn" onclick="showPage('stats')" id="nav-stats">📈 Stats</button>
+            <button class="nav-btn" onclick="showPage('letter')" id="nav-letter">💌 Carta</button>
+            <button class="nav-btn" onclick="showPage('settings')" id="nav-settings">⚙️ Config</button>
+        </div>
+    </nav>
+
+    <!-- HOME -->
+    <div id="page-home" class="page active">
+        <div class="hero">
+            <div class="day-badge" id="hero-badge-text">✨ Tu viaje de transformación</div>
+            <div class="day-num" id="hero-day">1</div>
+            <div class="day-label" id="hero-label-text">de 75 días</div>
+            <hr class="quote-divider">
+            <p class="daily-quote" id="hero-quote"></p>
+            <div class="progress-wrap">
+                <div class="progress-label"><span>Progreso</span><span id="hero-pct">0%</span></div>
+                <div class="progress-track"><div class="progress-fill" id="hero-bar" style="width:0%"></div></div>
+            </div>
+        </div>
+        <div class="streak-badge card" style="padding:16px">
+            <div id="streak-emoji">🔥</div>
+            <div>
+                <div class="streak-num" id="home-streak">0</div>
+                <div class="streak-text">días consecutivos</div>
+            </div>
+        </div>
+        <div class="card">
+            <h2 class="section-title">Hoy — <span id="home-date"></span></h2>
+            <div id="home-checklist-mini"></div>
+        </div>
+        <div class="card card-pink">
+            <div class="label">Agua de hoy</div>
+            <div class="water-cups" id="home-cups" style="justify-content:flex-start"></div>
+            <div class="water-track"><div class="water-fill" id="home-water-fill" style="width:0%"></div></div>
+            <div class="water-text" id="home-water-text">0 / 8 vasos</div>
+        </div>
+        <div class="card">
+            <div class="label">Hábitos extra de hoy</div>
+            <div id="home-extra-habits"></div>
+        </div>
+    </div>
+
+    <!-- CHECKLIST -->
+    <div id="page-checklist" class="page">
+        <h1 class="page-title">Checklist del día</h1>
+        <p class="subtitle" id="check-date-sub">Completá tus 6 tareas para cerrar el día.</p>
+        <div class="card" id="checklist-card"></div>
+        <div class="card" id="custom-tasks-card">
+            <h2 class="section-title">✏️ Actividades extra</h2>
+            <p class="subtitle" style="margin-bottom:12px">Agregá tu propia actividad opcional.</p>
+            <div id="custom-tasks-list"></div>
+            <div class="custom-task-row">
+                <input type="text" id="custom-task-input" placeholder="Ej: Estirar 10 min" maxlength="60">
+                <button class="btn btn-pink" onclick="addCustomTask()">+ Agregar</button>
+            </div>
+        </div>
+        <div class="all-done-banner" id="all-done-banner">
+            <h3 id="done-banner-title">¡Día completado! 🌸</h3>
+            <p>Otro día que te acerca a la mejor versión de vos.</p>
+        </div>
+    </div>
+
+    <!-- WATER -->
+    <div id="page-water" class="page">
+        <h1 class="page-title">💧 Agua</h1>
+        <p class="subtitle">Objetivo: 3.8 litros (8 vasos)</p>
+        <div class="card">
+            <div class="water-cups" id="water-cups-main" style="justify-content:center"></div>
+            <div class="water-bar-wrap">
+                <div class="water-track" style="height:24px"><div class="water-fill" id="water-fill-main" style="width:0%"></div></div>
+            </div>
+            <div class="water-text" id="water-text-main" style="font-size:15px;font-weight:500;margin-top:10px">0 / 8 vasos (0 / 3.8 L)</div>
+            <div style="text-align:center;margin-top:10px;color:var(--text-muted);font-size:12px">Tocá cada gota para registrar 💧</div>
+        </div>
+    </div>
+
+    <!-- PHOTOS -->
+    <div id="page-photos" class="page">
+        <h1 class="page-title">📷 Progreso</h1>
+        <p class="subtitle">Una foto por semana. ¡Tu transformación, documentada!</p>
+        <div class="card">
+            <div class="photos-grid" id="photos-grid"></div>
+            <input type="file" id="photo-input" class="photo-input" accept="image/*">
+        </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="page-calendar" class="page">
+        <h1 class="page-title">📅 Calendario</h1>
+        <p class="subtitle" id="cal-sub-text">Días completos en rosa 🩷, días rotos con 💔</p>
+        <div class="card">
+            <div class="cal-header" id="cal-header"></div>
+            <div class="cal-grid" id="cal-grid"></div>
+        </div>
+        <div class="card" style="margin-top:0">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px" id="cal-legend-container">
+                <div style="text-align:center"><div style="font-size:22px" id="cal-leg-complete">🩷</div><div style="font-size:12px;color:var(--text-muted)">Día completo</div></div>
+                <div style="text-align:center"><div style="font-size:22px">⬜</div><div style="font-size:12px;color:var(--text-muted)">Sin registro</div></div>
+                <div style="text-align:center"><div style="font-size:22px">💔</div><div style="font-size:12px;color:var(--text-muted)">Día roto</div></div>
+                <div style="text-align:center"><div style="font-size:22px">📅</div><div style="font-size:12px;color:var(--text-muted)">Hoy</div></div>
+            </div>
+        </div>
+        <div class="card card-pink" id="restart-section">
+            <div style="text-align:center;padding:8px">
+                <div style="font-size:32px;margin-bottom:8px">❤️‍🩹</div>
+                <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:6px" id="restart-title">¿Rompiste el reto?</h3>
+                <p class="text-sm" style="margin-bottom:14px">Está bien. Cada comienzo es una victoria.</p>
+                <button class="btn btn-pink" onclick="restartChallenge()">Volver al Día 1</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- READING -->
+    <div id="page-reading" class="page">
+        <h1 class="page-title">📖 Lectura</h1>
+        <p class="subtitle">Mínimo 10 páginas por día. ¡Construí el hábito!</p>
+        <div class="card">
+            <div class="label">Páginas leídas hoy</div>
+            <div class="reading-input-row">
+                <input type="number" class="num-input" id="pages-input" min="0" max="999" placeholder="0">
+                <span style="font-size:13px;color:var(--text-soft)">páginas</span>
+                <button class="btn btn-pink" onclick="savePages()">Guardar</button>
+            </div>
+            <div style="background:var(--pink-soft);border-radius:10px;padding:12px;font-size:13px;color:var(--text-soft)">
+                📚 Total acumulado: <span id="total-pages" style="font-weight:600;color:var(--text)">0</span> páginas
+            </div>
+        </div>
+    </div>
+
+    <!-- WORKOUT -->
+    <div id="page-workout" class="page">
+        <h1 class="page-title">🏋️ Entrenamientos</h1>
+        <p class="subtitle">Workout 1 interior + Workout 2 exterior. ¡Las dos cuentan!</p>
+        <div class="card">
+            <h2 class="section-title">Workout 1 — Interior 💪</h2>
+            <div style="background:var(--pink-soft);border-radius:12px;padding:14px;border-left:4px solid var(--pink)">
+                <div class="label">Tipo de entrenamiento</div>
+                <div class="workout-type-row" id="w1-types"></div>
+                <div class="reading-input-row">
+                    <input type="number" class="num-input" id="w1-duration" min="0" max="999" placeholder="45">
+                    <span style="font-size:13px;color:var(--text-soft)">minutos</span>
+                    <button class="btn btn-pink" onclick="saveWorkout(1)">Guardar</button>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted)" id="w1-status">Sin registrar hoy</div>
+            </div>
+        </div>
+        <div class="card">
+            <h2 class="section-title">Workout 2 — Exterior 🌿</h2>
+            <div style="background:var(--pink-soft);border-radius:12px;padding:14px;border-left:4px solid var(--lavender-deep)">
+                <div class="label">Tipo de entrenamiento</div>
+                <div class="workout-type-row" id="w2-types"></div>
+                <div class="reading-input-row">
+                    <input type="number" class="num-input" id="w2-duration" min="0" max="999" placeholder="30">
+                    <span style="font-size:13px;color:var(--text-soft)">minutos</span>
+                    <button class="btn btn-pink" onclick="saveWorkout(2)">Guardar</button>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted)" id="w2-status">Sin registrar hoy</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JOURNAL -->
+    <div id="page-journal" class="page">
+        <h1 class="page-title">📝 Journal</h1>
+        <p class="subtitle">Escribí cómo te sentiste hoy. Tu historia, preservada.</p>
+        <div class="card">
+            <div class="label">¿Cómo me sentí hoy?</div>
+            <textarea class="journal-textarea" id="journal-input" placeholder="Hoy fue un día...&#10;Me sentí...&#10;Lo que más me costó fue..."></textarea>
+            <div style="margin-top:10px;display:flex;justify-content:flex-end">
+                <button class="btn btn-pink" onclick="saveJournal()">Guardar entrada 🌸</button>
+            </div>
+        </div>
+        <div id="journal-history"></div>
+    </div>
+
+    <!-- MOOD -->
+    <div id="page-mood" class="page">
+        <h1 class="page-title">😊 Mood Tracker</h1>
+        <p class="subtitle">¿Cómo te sentís hoy?</p>
+        <div class="card">
+            <div class="mood-row" id="mood-buttons"></div>
+        </div>
+    </div>
+
+    <!-- ACHIEVEMENTS -->
+    <div id="page-achievements" class="page">
+        <h1 class="page-title">🏆 Logros</h1>
+        <p class="subtitle">Cada meta desbloqueada es tuya para siempre.</p>
+        <div class="ach-grid" id="ach-grid"></div>
+    </div>
+
+    <!-- STATS -->
+    <div id="page-stats" class="page">
+        <h1 class="page-title" id="stats-title-main">📈 Estadísticas</h1>
+        <p class="subtitle" id="stats-subtitle-main">Tu progreso en números.</p>
+
+        <div class="stats-grid" id="stats-grid"></div>
+
+        <div class="card" id="football-player-card" style="display:none; margin-top:16px;">
+            <h2 class="section-title" style="color:var(--lavender-deep); margin-bottom:16px;">📊 Atributos del Jugador</h2>
+            <div id="player-attributes-container"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+            <h2 class="section-title" id="chart-title-main">% completado por día (últimos 14)</h2>
+            <div style="display:flex;align-items:flex-end;gap:4px;height:80px;margin-top:8px" id="completion-chart"></div>
+        </div>
+    </div>
+
+    <!-- LETTER -->
+    <div id="page-letter" class="page">
+        <h1 class="page-title">💌 Carta para tu yo futuro</h1>
+        <p class="subtitle">Se desbloquea al completar los 75 días.</p>
+        <div id="letter-content"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="page-settings" class="page">
+        <h1 class="page-title">⚙️ Configuración</h1>
+        <div class="card">
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Estilo de la Aplicación</div>
+                    <div class="setting-sub">Elegí tu diseño preferido.</div>
+                </div>
+                <select id="theme-selector" onchange="changeTheme()">
+                    <option value="aesthetic">Estilo Aesthetic 🌸</option>
+                    <option value="football">Futbolero Moderno ⚽</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <div><div class="setting-label">Fecha de inicio</div><div class="setting-sub">¿Cuándo comenzaste el reto?</div></div>
+                <input type="date" id="start-date-input" onchange="updateStartDate()">
+            </div>
+            <div class="setting-row">
+                <div><div class="setting-label">Tu nombre</div><div class="setting-sub">¿Cómo te querés llamar?</div></div>
+                <input type="text" id="name-input" placeholder="Tu nombre" onchange="saveName()">
+            </div>
+        </div>
+        <div class="card">
+            <h2 class="section-title">Objetivo de agua</h2>
+            <div class="reading-input-row">
+                <input type="number" class="num-input" id="water-goal-input" value="8" min="4" max="16">
+                <span style="font-size:13px;color:var(--text-soft)">vasos por día</span>
+                <button class="btn btn-pink" onclick="saveWaterGoal()">Guardar</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2 class="section-title">Datos</h2>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn btn-outline" onclick="exportData()">Exportar datos JSON</button>
+                <button class="btn" style="border:1.5px solid #ff7070;color:#c00;background:none" onclick="confirmReset()">Resetear todo ⚠️</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
