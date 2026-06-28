@@ -588,7 +588,7 @@ function renderBooks() {
                     <div class="book-actions">
                         <input type="number" class="num-input" id="bp-${b.id}" min="1" placeholder="págs">
                         <button class="btn btn-pink" onclick="addBookPages('${b.id}')">+ Leer</button>
-                        <button class="book-remove" onclick="removeBook('${b.id}')">✕</button>
+                        <button class="btn btn-outline btn-remove" onclick="removeBook('${b.id}')">✕</button>
                     </div>
                 </div>
             </div>

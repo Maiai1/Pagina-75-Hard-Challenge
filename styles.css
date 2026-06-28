@@ -1232,16 +1232,22 @@ input[type=date], select {
 }
 .book-actions .num-input { width: 60px; }
 .book-actions .btn { padding: 6px 14px; font-size: 12px; }
-.book-remove {
-    cursor: pointer;
-    color: #ff7070;
-    font-size: 18px;
+.btn-remove {
+    border-color: #ff7070 !important;
+    color: #c00 !important;
+    font-size: 15px !important;
+    padding: 6px 14px !important;
     line-height: 1;
-    margin-left: auto;
-    transition: opacity .2s;
-    opacity: 0.5;
-    background: none;
-    border: none;
+}
+.btn-remove:hover {
+    background: #fff0f0 !important;
+}
+[data-theme="football"] .btn-remove {
+    border-color: #ef4444 !important;
+    color: #fca5a5 !important;
+}
+[data-theme="football"] .btn-remove:hover {
+    background: #1a0a0a !important;
 }
 .book-remove:hover { opacity: 1; }
 [data-theme="football"] .book-cover {
