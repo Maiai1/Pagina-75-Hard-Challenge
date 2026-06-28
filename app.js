@@ -506,10 +506,112 @@ function saveWorkout(n) {
     renderAll();
 }
 
+/* Books */
+function getBooks() { return get('books') || [] }
+function saveBooks(list) { set('books', list) }
+
+function addBook() {
+    const nameEl = document.getElementById('book-name-input');
+    const totalEl = document.getElementById('book-total-input');
+    if (!nameEl || !totalEl) return;
+    const name = nameEl.value.trim();
+    const total = parseInt(totalEl.value);
+    if (!name || !total || total < 1) return;
+    const coverInput = document.getElementById('book-cover-input');
+    const cover = coverInput?.files?.[0] ? coverInput.files[0] : null;
+    if (cover) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const books = getBooks();
+            books.push({ id: 'b' + Date.now(), name, totalPages: total, cover: e.target.result });
+            saveBooks(books);
+            nameEl.value = ''; totalEl.value = ''; coverInput.value = '';
+            renderReading();
+        };
+        reader.readAsDataURL(cover);
+    } else {
+        const books = getBooks();
+        books.push({ id: 'b' + Date.now(), name, totalPages: total, cover: null });
+        saveBooks(books);
+        nameEl.value = ''; totalEl.value = '';
+        renderReading();
+    }
+}
+
+function removeBook(id) {
+    const books = getBooks().filter(b => b.id !== id);
+    saveBooks(books);
+    renderReading();
+}
+
+function addBookPages(bookId) {
+    const inp = document.getElementById('bp-' + bookId);
+    if (!inp) return;
+    const v = parseInt(inp.value);
+    if (!v || v < 1) return;
+    const key = 'book-progress-' + bookId;
+    const current = parseInt(get(key) || 0);
+    set(key, current + v);
+    const dailyKey = 'book-daily-' + today() + '-' + bookId;
+    const dailyCur = parseInt(get(dailyKey) || 0);
+    set(dailyKey, dailyCur + v);
+    const books = getBooks();
+    let totalToday = 0;
+    books.forEach(b => { totalToday += parseInt(get('book-daily-' + today() + '-' + b.id) || 0); });
+    set('pages-' + today(), totalToday);
+    const checks = getChecks();
+    if (totalToday >= 10) { checks['reading'] = true; set('checks-' + today(), checks); }
+    inp.value = '';
+    renderReading();
+}
+
+function renderBooks() {
+    const container = document.getElementById('books-container');
+    if (!container) return;
+    const books = getBooks();
+    if (books.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0">Aún no agregaste libros. 📖</p>';
+        return;
+    }
+    container.innerHTML = books.map(b => {
+        const prog = parseInt(get('book-progress-' + b.id) || 0);
+        const pct = b.totalPages > 0 ? Math.min(100, Math.round((prog / b.totalPages) * 100)) : 0;
+        return `<div class="card">
+            <div class="book-card">
+                <div class="book-cover">${b.cover ? `<img src="${b.cover}" alt="${b.name}">` : b.name}</div>
+                <div class="book-info">
+                    <div>
+                        <div class="book-name">${b.name}</div>
+                        <div class="book-meta">${prog} / ${b.totalPages} páginas · ${pct}%</div>
+                    </div>
+                    <div class="book-bar-track"><div class="book-bar-fill" style="width:${pct}%"></div></div>
+                    <div class="book-actions">
+                        <input type="number" class="num-input" id="bp-${b.id}" min="1" placeholder="págs">
+                        <button class="btn btn-pink" onclick="addBookPages('${b.id}')">+ Leer</button>
+                        <button class="book-remove" onclick="removeBook('${b.id}')">✕</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
 function renderReading() {
+    renderBooks();
     const pToday = get('pages-' + today()) || 0;
     const pd = document.getElementById('pages-input');
     if (pd && !pd.value) pd.value = pToday || '';
+    document.getElementById('total-pages').textContent = calcTotalPagesEver();
+}
+
+function calcTotalPagesEver() {
+    const books = getBooks();
+    if (books.length > 0) {
+        let total = 0;
+        books.forEach(b => { total += parseInt(get('book-progress-' + b.id) || 0); });
+        return total;
+    }
+    return parseInt(get('pages-' + today()) || 0);
 }
 
 function savePages() {
