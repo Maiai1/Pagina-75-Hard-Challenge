@@ -1237,8 +1237,6 @@ input[type=date], select {
     border-color: #334155;
     color: #94A3B8;
 }
-#book-cover-input { display: none; }
-
 /* Mobile responsive */
 @media (max-width: 420px) {
     .page { padding: 100px 12px 30px; }
