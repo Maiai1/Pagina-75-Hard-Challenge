@@ -73,6 +73,9 @@ function today() {
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
+function localDateStr(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
 function get(k) { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } }
 function set(k, v) { localStorage.setItem(k, JSON.stringify(v)) }
 
@@ -219,7 +222,7 @@ function calcStreak() {
     const t = new Date(today());
     for (let i = 0; i < 75; i++) {
         const d = new Date(t); d.setDate(t.getDate() - i);
-        const ds = d.toISOString().slice(0, 10);
+        const ds = localDateStr(d);
         const c = get('checks-' + ds);
         if (c && TASKS.every(t2 => c[t2.id])) streak++;
         else if (i > 0) break;
@@ -399,7 +402,7 @@ function renderStats() {
     let completeDays = 0, totalLiters = 0, totalWorkoutMins = 0, totalPages = 0, dietDays = 0;
     for (let i = 0; i < day; i++) {
         const d = new Date(sd); d.setDate(sd.getDate() + i);
-        const ds = d.toISOString().slice(0, 10);
+        const ds = localDateStr(d);
         const c = get('checks-' + ds);
         if (c) {
             if (TASKS.every(t => c[t.id])) completeDays++;
@@ -469,7 +472,7 @@ function renderStats() {
         let html = '';
         for (let i = 13; i >= 0; i--) {
             const d = new Date(); d.setDate(d.getDate() - i);
-            const ds = d.toISOString().slice(0, 10);
+            const ds = localDateStr(d);
             const c = get('checks-' + ds);
             let pct = 0;
             if (c) { const done = TASKS.filter(t => c[t.id]).length; pct = Math.round((done / TASKS.length) * 100); }
@@ -485,36 +488,59 @@ function renderStats() {
 
 function renderPhotos() {
     const grid = document.getElementById('photos-grid');
+    const saveRow = document.getElementById('photo-save-row');
     if (!grid) return;
     const photos = get('photos') || {};
     let html = '';
     for (let i = 1; i <= 10; i++) {
         const week = 'week' + i;
-        const hasPhoto = photos[week];
-        html += `<div class="photo-slot" onclick="openPhotoUpload('${week}')">
-      ${hasPhoto ? `<img src="${hasPhoto}" alt="Semana ${i}">` : `<div class="upload-icon">📷</div><div class="upload-label">Semana ${i}</div>`}
+        const isPending = pendingPhotoSlot === week && pendingPhotoData;
+        const imgSrc = isPending ? pendingPhotoData : photos[week];
+        html += `<div class="photo-slot ${isPending ? 'pending' : ''}" onclick="openPhotoUpload('${week}')">
+      ${imgSrc ? `<img src="${imgSrc}" alt="Semana ${i}">` : `<div class="upload-icon">📷</div><div class="upload-label">Semana ${i}</div>`}
+      ${isPending ? '<div class="pending-badge">🆕 Vista previa</div>' : ''}
     </div>`;
     }
     grid.innerHTML = html;
+    if (saveRow) saveRow.style.display = pendingPhotoData ? 'block' : 'none';
 }
 
 function openPhotoUpload(slot) { selectedPhotoSlot = slot; document.getElementById('photo-input').click(); }
+
+let pendingPhotoData = null;
+let pendingPhotoSlot = null;
 
 document.getElementById('photo-input').addEventListener('change', function () {
     if (!this.files[0] || !selectedPhotoSlot) return;
     const reader = new FileReader();
     reader.onload = e => {
-        const photos = get('photos') || {};
-        photos[selectedPhotoSlot] = e.target.result;
-        set('photos', photos);
-        const checks = getChecks();
-        checks['photo'] = true;
-        set('checks-' + today(), checks);
-        renderAll();
+        pendingPhotoData = e.target.result;
+        pendingPhotoSlot = selectedPhotoSlot;
+        this.value = '';
+        renderPhotos();
     };
     reader.readAsDataURL(this.files[0]);
     this.value = '';
 });
+
+function savePendingPhoto() {
+    if (!pendingPhotoData || !pendingPhotoSlot) return;
+    const photos = get('photos') || {};
+    photos[pendingPhotoSlot] = pendingPhotoData;
+    set('photos', photos);
+    const checks = getChecks();
+    checks['photo'] = true;
+    set('checks-' + today(), checks);
+    pendingPhotoData = null;
+    pendingPhotoSlot = null;
+    renderAll();
+}
+
+function cancelPendingPhoto() {
+    pendingPhotoData = null;
+    pendingPhotoSlot = null;
+    renderPhotos();
+}
 
 function renderWorkout() {
     ['1', '2'].forEach(n => {
@@ -687,7 +713,7 @@ function checkCelebration() {
     let allComplete = true;
     for (let i = 0; i < 75; i++) {
         const d = new Date(sd); d.setDate(sd.getDate() + i);
-        const ds = d.toISOString().slice(0, 10);
+        const ds = localDateStr(d);
         const c = get('checks-' + ds);
         if (!c || !TASKS.every(t => c[t.id])) { allComplete = false; break; }
     }

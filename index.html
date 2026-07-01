@@ -124,6 +124,10 @@
         <div class="card">
             <div class="photos-grid" id="photos-grid"></div>
             <input type="file" id="photo-input" class="photo-input" accept="image/*">
+            <div id="photo-save-row" style="display:none;margin-top:14px;text-align:center">
+                <button class="btn btn-pink" onclick="savePendingPhoto()">💾 Guardar foto</button>
+                <button class="btn btn-outline btn-remove" onclick="cancelPendingPhoto()" style="margin-left:8px">✕ Cancelar</button>
+            </div>
         </div>
     </div>
 
