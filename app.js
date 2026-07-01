@@ -69,13 +69,7 @@ const MOODS = [
     { e: '😭', l: 'Difícil', v: 1 }
 ];
 
-function today() {
-    const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
-function localDateStr(d) {
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
+function today() { return new Date().toISOString().slice(0, 10) }
 function get(k) { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } }
 function set(k, v) { localStorage.setItem(k, JSON.stringify(v)) }
 
@@ -222,7 +216,7 @@ function calcStreak() {
     const t = new Date(today());
     for (let i = 0; i < 75; i++) {
         const d = new Date(t); d.setDate(t.getDate() - i);
-        const ds = localDateStr(d);
+        const ds = d.toISOString().slice(0, 10);
         const c = get('checks-' + ds);
         if (c && TASKS.every(t2 => c[t2.id])) streak++;
         else if (i > 0) break;
@@ -313,10 +307,7 @@ function renderCalendar() {
             const dow = (d.getDay() + 6) % 7;
             for (let j = 0; j < dow; j++) html += `<div class="cal-cell empty"></div>`;
         }
-        const y = d.getFullYear();
-        const mo = String(d.getMonth() + 1).padStart(2, '0');
-        const da = String(d.getDate()).padStart(2, '0');
-        const ds = y + '-' + mo + '-' + da;
+        const ds = d.toISOString().slice(0, 10);
         const isToday = ds === today();
         const isFuture = d > t;
         const checks = get('checks-' + ds);
@@ -402,7 +393,7 @@ function renderStats() {
     let completeDays = 0, totalLiters = 0, totalWorkoutMins = 0, totalPages = 0, dietDays = 0;
     for (let i = 0; i < day; i++) {
         const d = new Date(sd); d.setDate(sd.getDate() + i);
-        const ds = localDateStr(d);
+        const ds = d.toISOString().slice(0, 10);
         const c = get('checks-' + ds);
         if (c) {
             if (TASKS.every(t => c[t.id])) completeDays++;
@@ -472,7 +463,7 @@ function renderStats() {
         let html = '';
         for (let i = 13; i >= 0; i--) {
             const d = new Date(); d.setDate(d.getDate() - i);
-            const ds = localDateStr(d);
+            const ds = d.toISOString().slice(0, 10);
             const c = get('checks-' + ds);
             let pct = 0;
             if (c) { const done = TASKS.filter(t => c[t.id]).length; pct = Math.round((done / TASKS.length) * 100); }
@@ -713,7 +704,7 @@ function checkCelebration() {
     let allComplete = true;
     for (let i = 0; i < 75; i++) {
         const d = new Date(sd); d.setDate(sd.getDate() + i);
-        const ds = localDateStr(d);
+        const ds = d.toISOString().slice(0, 10);
         const c = get('checks-' + ds);
         if (!c || !TASKS.every(t => c[t.id])) { allComplete = false; break; }
     }
