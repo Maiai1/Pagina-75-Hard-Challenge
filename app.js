@@ -69,7 +69,10 @@ const MOODS = [
     { e: '😭', l: 'Difícil', v: 1 }
 ];
 
-function today() { return new Date().toISOString().slice(0, 10) }
+function today() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
 function get(k) { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } }
 function set(k, v) { localStorage.setItem(k, JSON.stringify(v)) }
 
@@ -196,6 +199,19 @@ function renderHome() {
     if (eh) {
         eh.innerHTML = EXTRA_HABITS.map(h => `<span class="habit-chip ${extra[h.id] ? 'done' : ''}" onclick="toggleExtra('${h.id}')">${h.icon} ${h.label}</span>`).join('');
     }
+    const homeCustomTasks = document.getElementById('home-custom-tasks');
+    const homeCustomCard = document.getElementById('home-custom-card');
+    if (homeCustomTasks && homeCustomCard) {
+        const tasks = getCustomTasks();
+        const checks = get('custom-checks-' + today()) || {};
+        if (tasks.length > 0) {
+            homeCustomCard.style.display = 'block';
+            homeCustomTasks.innerHTML = tasks.map(t => `<span class="habit-chip ${checks[t.id] ? 'done' : ''}" onclick="toggleCustomCheck('${t.id}')">${t.label}</span>`).join('');
+        } else {
+            homeCustomCard.style.display = 'none';
+            homeCustomTasks.innerHTML = '';
+        }
+    }
 }
 
 function calcStreak() {
@@ -247,6 +263,11 @@ function toggleCup(n) {
     const cur = parseInt(get('water-' + today()) || 0);
     const newV = cur >= n ? n - 1 : n;
     set('water-' + today(), Math.max(0, Math.min(goal, newV)));
+    if (newV >= goal) {
+        const checks = getChecks();
+        checks['water'] = true;
+        set('checks-' + today(), checks);
+    }
     renderAll();
 }
 
@@ -274,12 +295,25 @@ function renderCalendar() {
     hdr.innerHTML = days.map(d => `<div class="cal-day-name">${d}</div>`).join('');
     const sd = new Date(get('startDate') || today());
     const t = new Date(today());
+    const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     let html = '';
+    let lastMonth = -1;
     const startDow = (sd.getDay() + 6) % 7;
-    for (let i = 0; i < startDow; i++)html += `<div class="cal-cell empty"></div>`;
+    for (let i = 0; i < startDow; i++) html += `<div class="cal-cell empty"></div>`;
     for (let i = 0; i < 75; i++) {
         const d = new Date(sd); d.setDate(sd.getDate() + i);
-        const ds = d.toISOString().slice(0, 10);
+        const m = d.getMonth();
+        if (m !== lastMonth) {
+            lastMonth = m;
+            const label = months[m] + ' ' + d.getFullYear();
+            html += `<div class="cal-month-label" colspan="7">${label}</div>`;
+            const dow = (d.getDay() + 6) % 7;
+            for (let j = 0; j < dow; j++) html += `<div class="cal-cell empty"></div>`;
+        }
+        const y = d.getFullYear();
+        const mo = String(d.getMonth() + 1).padStart(2, '0');
+        const da = String(d.getDate()).padStart(2, '0');
+        const ds = y + '-' + mo + '-' + da;
         const isToday = ds === today();
         const isFuture = d > t;
         const checks = get('checks-' + ds);
@@ -473,7 +507,10 @@ document.getElementById('photo-input').addEventListener('change', function () {
         const photos = get('photos') || {};
         photos[selectedPhotoSlot] = e.target.result;
         set('photos', photos);
-        renderPhotos();
+        const checks = getChecks();
+        checks['photo'] = true;
+        set('checks-' + today(), checks);
+        renderAll();
     };
     reader.readAsDataURL(this.files[0]);
     this.value = '';
