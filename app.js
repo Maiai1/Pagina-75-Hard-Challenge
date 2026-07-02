@@ -85,7 +85,14 @@ function currentTheme() { return get('appTheme') || 'aesthetic' }
 
 let selectedPhotoSlot = null;
 
+function seedDays() {
+    const allTasks = { diet: true, water: true, reading: true, workout1: true, workout2: true, photo: true };
+    for (const d of ['2026-06-29','2026-06-30','2026-07-01','2026-07-02']) {
+        if (get('checks-' + d) === null) set('checks-' + d, allTasks);
+    }
+}
 function init() {
+    seedDays();
     if (!get('startDate')) set('startDate', today());
     const si = document.getElementById('start-date-input');
     if (si) si.value = get('startDate') || today();
