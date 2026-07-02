@@ -900,7 +900,11 @@ h2.section-title {
 }
 /* Photo input styling */
 .photo-input {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
 }
 /* Custom task row */
 .custom-task-row {
