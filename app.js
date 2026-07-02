@@ -69,7 +69,8 @@ const MOODS = [
     { e: '😭', l: 'Difícil', v: 1 }
 ];
 
-function today() { return new Date().toISOString().slice(0, 10) }
+function today() { return formatLocal(new Date()) }
+function formatLocal(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') }
 function get(k) { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } }
 function set(k, v) { localStorage.setItem(k, JSON.stringify(v)) }
 
@@ -85,7 +86,33 @@ function currentTheme() { return get('appTheme') || 'aesthetic' }
 
 let selectedPhotoSlot = null;
 
+function migrateOldData() {
+    const prefixes = ['checks-', 'water-', 'broken-', 'workout1-', 'workout2-', 'workout-type1-', 'workout-type2-', 'pages-', 'extra-', 'custom-checks-'];
+    const startDate = get('startDate');
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        const prefix = prefixes.find(p => key.startsWith(p));
+        if (!prefix) continue;
+        const dateStr = key.slice(prefix.length);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) continue;
+        // Map old UTC-stored keys to local date (try same day and day before)
+        const d = new Date(dateStr + 'T12:00:00');
+        const candidates = [formatLocal(d)];
+        d.setDate(d.getDate() - 1);
+        candidates.push(formatLocal(d));
+        for (const localDate of candidates) {
+            const localKey = prefix + localDate;
+            if (localKey !== key && get(localKey) === null && localDate >= startDate) {
+                set(localKey, get(key));
+                break;
+            }
+        }
+    }
+}
+
 function init() {
+    migrateOldData();
     if (!get('startDate')) set('startDate', today());
     const si = document.getElementById('start-date-input');
     if (si) si.value = get('startDate') || today();
@@ -213,10 +240,10 @@ function renderHome() {
 
 function calcStreak() {
     let streak = 0;
-    const t = new Date(today());
+    const t = new Date();
     for (let i = 0; i < 75; i++) {
         const d = new Date(t); d.setDate(t.getDate() - i);
-        const ds = d.toISOString().slice(0, 10);
+        const ds = formatLocal(d);
         const c = get('checks-' + ds);
         if (c && TASKS.every(t2 => c[t2.id])) streak++;
         else if (i > 0) break;
@@ -290,13 +317,14 @@ function renderCalendar() {
     if (!hdr || !grid) return;
     const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
     hdr.innerHTML = days.map(d => `<div class="cal-day-name">${d}</div>`).join('');
-    const sd = new Date(get('startDate') || today());
-    const t = new Date(today());
+    const sdStr = get('startDate') || today();
+    const sd = new Date(sdStr + 'T12:00:00');
     const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     let html = '';
     let lastMonth = -1;
     const startDow = (sd.getDay() + 6) % 7;
     for (let i = 0; i < startDow; i++) html += `<div class="cal-cell empty"></div>`;
+    const now = today();
     for (let i = 0; i < 75; i++) {
         const d = new Date(sd); d.setDate(sd.getDate() + i);
         const m = d.getMonth();
@@ -307,9 +335,9 @@ function renderCalendar() {
             const dow = (d.getDay() + 6) % 7;
             for (let j = 0; j < dow; j++) html += `<div class="cal-cell empty"></div>`;
         }
-        const ds = d.toISOString().slice(0, 10);
-        const isToday = ds === today();
-        const isFuture = d > t;
+        const ds = formatLocal(d);
+        const isToday = ds === now;
+        const isFuture = ds > now;
         const checks = get('checks-' + ds);
         const complete = checks && TASKS.every(t2 => checks[t2.id]);
         const broken = get('broken-' + ds);
@@ -387,13 +415,13 @@ function renderStats() {
     const fbc = document.getElementById('football-player-card');
     if (!grid) return;
     const day = getDay();
-    const sd = new Date(get('startDate') || today());
+    const sd = new Date((get('startDate') || today()) + 'T12:00:00');
     const isFB = currentTheme() === 'football';
 
     let completeDays = 0, totalLiters = 0, totalWorkoutMins = 0, totalPages = 0, dietDays = 0;
     for (let i = 0; i < day; i++) {
         const d = new Date(sd); d.setDate(sd.getDate() + i);
-        const ds = d.toISOString().slice(0, 10);
+        const ds = formatLocal(d);
         const c = get('checks-' + ds);
         if (c) {
             if (TASKS.every(t => c[t.id])) completeDays++;
@@ -463,7 +491,7 @@ function renderStats() {
         let html = '';
         for (let i = 13; i >= 0; i--) {
             const d = new Date(); d.setDate(d.getDate() - i);
-            const ds = d.toISOString().slice(0, 10);
+            const ds = formatLocal(d);
             const c = get('checks-' + ds);
             let pct = 0;
             if (c) { const done = TASKS.filter(t => c[t.id]).length; pct = Math.round((done / TASKS.length) * 100); }
@@ -700,11 +728,11 @@ function renderLetter() {
 }
 
 function checkCelebration() {
-    const sd = new Date(get('startDate') || today());
+    const sd = new Date((get('startDate') || today()) + 'T12:00:00');
     let allComplete = true;
     for (let i = 0; i < 75; i++) {
         const d = new Date(sd); d.setDate(sd.getDate() + i);
-        const ds = d.toISOString().slice(0, 10);
+        const ds = formatLocal(d);
         const c = get('checks-' + ds);
         if (!c || !TASKS.every(t => c[t.id])) { allComplete = false; break; }
     }
