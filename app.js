@@ -86,8 +86,9 @@ function currentTheme() { return get('appTheme') || 'aesthetic' }
 let selectedPhotoSlot = null;
 
 function seedDays() {
+    if (!get('startDate')) set('startDate', '2026-06-29');
     const allTasks = { diet: true, water: true, reading: true, workout1: true, workout2: true, photo: true };
-    for (const d of ['2026-06-29','2026-06-30','2026-07-01','2026-07-02']) {
+    for (const d of ['2026-06-28','2026-06-29','2026-06-30','2026-07-01','2026-07-02','2026-07-03','2026-07-04','2026-07-05']) {
         if (get('checks-' + d) === null) set('checks-' + d, allTasks);
     }
 }
