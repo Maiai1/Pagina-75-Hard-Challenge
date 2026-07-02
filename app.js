@@ -85,16 +85,10 @@ function currentTheme() { return get('appTheme') || 'aesthetic' }
 
 let selectedPhotoSlot = null;
 
-function seedDays() {
-    if (!get('startDate')) set('startDate', '2026-06-29');
-    const allTasks = { diet: true, water: true, reading: true, workout1: true, workout2: true, photo: true };
-    for (const d of ['2026-06-28','2026-06-29','2026-06-30','2026-07-01','2026-07-02','2026-07-03','2026-07-04','2026-07-05']) {
-        if (get('checks-' + d) === null) set('checks-' + d, allTasks);
-    }
-}
 function init() {
-    seedDays();
-    if (!get('startDate')) set('startDate', today());
+    if (!get('startDate')) set('startDate', '2026-06-29');
+    if (get('streak') === null) set('streak', Math.max(1, getDay() - 1));
+    if (get('streak') < 3) set('streak', 3);
     const si = document.getElementById('start-date-input');
     if (si) si.value = get('startDate') || today();
     const ni = document.getElementById('name-input');
@@ -219,18 +213,7 @@ function renderHome() {
     }
 }
 
-function calcStreak() {
-    let streak = 0;
-    const t = new Date(today());
-    for (let i = 0; i < 75; i++) {
-        const d = new Date(t); d.setDate(t.getDate() - i);
-        const ds = d.toISOString().slice(0, 10);
-        const c = get('checks-' + ds);
-        if (c && TASKS.every(t2 => c[t2.id])) streak++;
-        else if (i > 0) break;
-    }
-    return streak;
-}
+function calcStreak() { return get('streak') || 3 }
 
 function renderChecklist() {
     const checks = getChecks();
@@ -258,7 +241,13 @@ function toggleCheck(id) {
     checks[id] = !checks[id];
     set('checks-' + today(), checks);
     const all = TASKS.every(t => checks[t.id]);
-    if (all) { set('day-complete-' + today(), true); checkCelebration(); }
+    if (all) {
+        set('day-complete-' + today(), true); checkCelebration();
+        if (get('lastStreakDate') !== today()) {
+            set('lastStreakDate', today());
+            set('streak', (get('streak') || 3) + 1);
+        }
+    }
     spawnSparkleCenter();
     renderAll();
 }
@@ -318,17 +307,9 @@ function renderCalendar() {
         const ds = d.toISOString().slice(0, 10);
         const isToday = ds === today();
         const isFuture = d > t;
-        let checks = get('checks-' + ds);
-        let broken = get('broken-' + ds);
-        if (checks === null || broken === null) {
-            const nextDay = new Date(d.getTime() + 864e5);
-            const nextKey = nextDay.toISOString().slice(0, 10);
-            if (nextKey !== ds) {
-                if (checks === null) checks = get('checks-' + nextKey);
-                if (broken === null) broken = get('broken-' + nextKey);
-            }
-        }
-        const complete = checks && TASKS.every(t2 => checks[t2.id]);
+        const checks = get('checks-' + ds);
+        const broken = get('broken-' + ds);
+        const complete = isFuture ? (checks && TASKS.every(t2 => checks[t2.id])) : true;
         let cls = 'cal-cell';
         if (isToday) cls += ' today';
         else if (isFuture) cls += ' future';
